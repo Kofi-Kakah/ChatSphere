@@ -1,0 +1,72 @@
+@import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+
+:root {
+  --bg: #F5F6FA;
+  --surface: #FFFFFF;
+  --surface-2: #F0F2F7;
+  --border: #E4E7EC;
+  --text: #101828;
+  --text-muted: #667085;
+  --text-subtle: #98A2B3;
+  --primary: #4F46E5;
+  --primary-soft: #EEF2FF;
+  --link-and-focus: #4F46E5;
+  --bubble-in: #FFFFFF;
+  --bubble-in-text: #101828;
+  --bubble-out: #4F46E5;
+  --bubble-out-text: #FFFFFF;
+  --tick-sent: rgba(255, 255, 255, 0.65);
+  --tick-read: #7DD3FC;
+  --online: #22C55E;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #16A34A;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0B0F19;
+  --surface: #111827;
+  --surface-2: #1B2333;
+  --border: #263041;
+  --text: #F2F4F7;
+  --text-muted: #98A2B3;
+  --text-subtle: #667085;
+  --primary: #5B5BF0;
+  --primary-soft: #1E2347;
+  --link-and-focus: #A5B4FC;
+  --bubble-in: #1F2937;
+  --bubble-in-text: #F2F4F7;
+  --bubble-out: #5B54F0;
+  --bubble-out-text: #FFFFFF;
+  --tick-sent: rgba(255, 255, 255, 0.65);
+  --tick-read: #7DD3FC;
+  --online: #22C55E;
+  --danger: #F87171;
+  --warning: #FBBF24;
+  --success: #4ADE80;
+  color-scheme: dark;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+* { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

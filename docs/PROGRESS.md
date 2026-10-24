@@ -7,8 +7,8 @@ Last updated: 2026-10-24
 | Phase | Status | Date | Notes |
 |---|---|---|---|
 | 0. Discovery and plan | Approved | 2026-10-24 | User approved Phase 0 plan, including Vitest. Existing repo is a Vite + React JavaScript starter. MongoDB URI will be read from `MONGODB_URI` at runtime; `.env` remains unopened. |
-| 1. Backend foundation | Awaiting approval | 2026-10-24 | Server skeleton, zod env validation, Mongoose connection, helmet/cors/rate-limit, error handler, health route, logger, vitest + mongodb-memory-server + supertest tests all passing. |
-| 2. Frontend foundation, design system, and light/dark mode | Not started | — | — |
+| 1. Backend foundation | Approved | 2026-10-24 | Server skeleton, zod env validation, Mongoose connection, helmet/cors/rate-limit, error handler, health route, logger, vitest + mongodb-memory-server + supertest tests all passing. |
+| 2. Frontend foundation, design system, and light/dark mode | Awaiting approval | 2026-10-24 | Vite client shell, Tailwind v4 tokens (light/dark), Inter font, no-flash theme script, zustand persisted Light/Dark/System with tab + OS sync, base UI components (Button, Input, Avatar, Badge, Skeleton, Dialog, Popover, Tooltip, Toast), app shell (rail/list/chat/info) with mock data, /design-preview route. Build passes. |
 | 3. Authentication | Not started | — | — |
 | 4. User profiles | Not started | — | — |
 | 5. Real-time foundation and presence | Not started | — | Raw `ws` selected; custom rooms, acknowledgements, rate limits, authentication, and reconnect behavior will need implementation in place of Socket.IO features. |
