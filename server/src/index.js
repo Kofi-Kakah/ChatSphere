@@ -5,11 +5,13 @@ import { createApp } from './app.js'
 import { loadConfig } from './config/env.js'
 import { connectDatabase, disconnectDatabase } from './config/database.js'
 import { logger } from './utils/logger.js'
+import { attachWebSocket } from './sockets/index.js'
 
 export async function startServer(config = loadConfig()) {
   await connectDatabase(config.MONGODB_URI)
 
   const server = createServer(createApp(config))
+  attachWebSocket(server, config)
   await new Promise((resolve, reject) => {
     server.once('error', reject)
     server.listen(config.PORT, resolve)
