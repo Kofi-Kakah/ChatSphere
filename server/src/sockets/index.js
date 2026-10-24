@@ -97,6 +97,48 @@ export function attachWebSocket(server, config) {
         }
         return
       }
+      if (msg.type === 'typing:start' || msg.type === 'typing:stop') {
+        const { conversationId } = msg
+        const conv = await Conversation.findById(conversationId)
+        if (!conv || !conv.participants.some((p) => String(p.user) === userId)) return
+        for (const p of conv.participants) {
+          const uid = String(p.user)
+          if (uid === userId) continue
+          const set = socketsByUser.get(uid)
+          if (set) for (const s of set) if (s.readyState === 1) s.send(JSON.stringify({ type: 'typing:update', conversationId, userId, isTyping: msg.type === 'typing:start' }))
+        }
+        return
+      }
+
+      if (msg.type === 'message:delivered') {
+        const { conversationId, messageId } = msg
+        const conv = await Conversation.findById(conversationId)
+        if (!conv) return
+        const part = conv.participants.find((p) => String(p.user) === userId)
+        if (part) { part.lastDeliveredMessage = messageId; await conv.save() }
+        // broadcast status
+        for (const p of conv.participants) {
+          const uid = String(p.user)
+          const set = socketsByUser.get(uid)
+          if (set) for (const s of set) if (s.readyState === 1) s.send(JSON.stringify({ type: 'message:status', conversationId, userId, lastDeliveredMessage: messageId }))
+        }
+        return
+      }
+
+      if (msg.type === 'message:read') {
+        const { conversationId, messageId } = msg
+        const conv = await Conversation.findById(conversationId)
+        if (!conv) return
+        const part = conv.participants.find((p) => String(p.user) === userId)
+        if (part) { part.lastReadMessage = messageId; await conv.save() }
+        for (const p of conv.participants) {
+          const uid = String(p.user)
+          const set = socketsByUser.get(uid)
+          if (set) for (const s of set) if (s.readyState === 1) s.send(JSON.stringify({ type: 'message:status', conversationId, userId, lastReadMessage: messageId }))
+        }
+        return
+      }
+
       if (msg.type === 'ping') ws.send(JSON.stringify({ type: 'pong' }))
     })
 
