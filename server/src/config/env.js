@@ -8,6 +8,8 @@ const envSchema = z.object({
     (value) => value.startsWith('mongodb://') || value.startsWith('mongodb+srv://'),
     'MONGODB_URI must use mongodb:// or mongodb+srv://',
   ),
+  JWT_ACCESS_SECRET: z.string().min(16),
+  JWT_REFRESH_SECRET: z.string().min(16),
 })
 
 export function loadConfig(env = process.env) {

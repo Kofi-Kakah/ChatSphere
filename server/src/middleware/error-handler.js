@@ -13,23 +13,27 @@ export function errorHandler(error, _req, res, next) {
     return
   }
 
-  const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600
+  let status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600
     ? error.status
     : 500
-  const code = status >= 500
-    ? 'INTERNAL_ERROR'
-    : error.code === 'NOT_FOUND'
-      ? 'NOT_FOUND'
-      : 'BAD_REQUEST'
+  let code = error.code
+  let message = error.message
+
+  if (error?.name === 'ZodError') {
+    status = 400
+    code = 'VALIDATION_ERROR'
+    message = error.issues?.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ') || 'Invalid request'
+  }
+
+  if (!code) code = status >= 500 ? 'INTERNAL_ERROR' : (status === 404 ? 'NOT_FOUND' : 'BAD_REQUEST')
+  if (!message) message = status >= 500 ? 'An unexpected error occurred' : 'Invalid request'
+  if (status === 404 && !error.code) message = 'Route not found'
 
   if (status >= 500) {
     logger.error('request_failed', { status, code })
   }
 
   res.status(status).json({
-    error: {
-      code,
-      message: status === 404 ? 'Route not found' : status >= 500 ? 'An unexpected error occurred' : 'Invalid request',
-    },
+    error: { code, message },
   })
 }
