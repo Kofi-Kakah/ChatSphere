@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
-import { isSocketOpen } from '../../lib/socket.js'
 import Avatar from '../../components/ui/Avatar.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Input from '../../components/ui/Input.jsx'
+
+const EmojiPicker = lazy(() => import('emoji-picker-react'))
 
 export default function Chats() {
   const [conversations, setConversations] = useState([])
   const [active, setActive] = useState(null)
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
+  const [showEmoji, setShowEmoji] = useState(false)
+  const textareaRef = useRef(null)
 
   useEffect(() => {
     api('/conversations').then((d) => setConversations(d.conversations || []))
@@ -26,16 +29,19 @@ export default function Chats() {
     return () => window.removeEventListener('ws-message', handler)
   }, [active])
 
-  // socket message dispatch
   useEffect(() => {
-    const { connectSocket } = require?.('../../lib/socket.js') || {}
-  }, [])
+    if (active) {
+      const draft = localStorage.getItem(`draft:${active._id}`) || ''
+      setText(draft)
+      api(`/conversations/${active._id}/messages`).then((d) => setMessages(d.messages || []))
+    }
+  }, [active])
 
-  async function openConv(c) {
-    setActive(c)
-    const d = await api(`/conversations/${c._id}/messages`)
-    setMessages(d.messages || [])
-  }
+  useEffect(() => {
+    if (active) localStorage.setItem(`draft:${active._id}`, text)
+  }, [text, active])
+
+  async function openConv(c) { setActive(c) }
 
   async function startChat() {
     const username = prompt('Username to chat with:')
@@ -59,6 +65,25 @@ export default function Chats() {
       ws.send(JSON.stringify({ type: 'message:send', conversationId: active._id, clientId, type: 'text', text }))
     }
     setText('')
+    localStorage.removeItem(`draft:${active._id}`)
+  }
+
+  function onEmojiClick(emojiData) {
+    const ta = textareaRef.current
+    if (!ta) { setText((t) => t + emojiData.emoji); return }
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const next = text.slice(0, start) + emojiData.emoji + text.slice(end)
+    setText(next)
+    requestAnimationFrame(() => {
+      ta.selectionStart = ta.selectionEnd = start + emojiData.emoji.length
+      ta.focus()
+    })
+  }
+
+  function autoGrow(e) {
+    e.target.style.height = 'auto'
+    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px'
   }
 
   return (
@@ -91,9 +116,29 @@ export default function Chats() {
             </div>
           ))}
         </div>
-        <div className="border-t border-[var(--border)] bg-[var(--surface)] p-3 flex gap-2">
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message" onKeyDown={(e) => { if (e.key === 'Enter') send() }} />
-          <Button onClick={send}>Send</Button>
+        <div className="border-t border-[var(--border)] bg-[var(--surface)] p-3">
+          <div className="flex gap-2 items-end">
+            <button onClick={() => setShowEmoji((v) => !v)} className="text-[var(--text-muted)] hover:text-[var(--text)] px-2 py-2">🙂</button>
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={(e) => { setText(e.target.value); autoGrow(e) }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
+              }}
+              placeholder="Type a message"
+              rows={1}
+              className="flex-1 resize-none rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--link-and-focus)]"
+            />
+            <Button onClick={send}>Send</Button>
+          </div>
+          {showEmoji && (
+            <div className="mt-2">
+              <Suspense fallback={<div className="text-sm text-[var(--text-muted)]">Loading…</div>}>
+                <EmojiPicker onEmojiClick={onEmojiClick} theme="auto" />
+              </Suspense>
+            </div>
+          )}
         </div>
       </main>
     </div>
