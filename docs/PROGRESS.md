@@ -7,7 +7,7 @@ Last updated: 2026-10-24
 | Phase | Status | Date | Notes |
 |---|---|---|---|
 | 0. Discovery and plan | Approved | 2026-10-24 | User approved Phase 0 plan, including Vitest. Existing repo is a Vite + React JavaScript starter. MongoDB URI will be read from `MONGODB_URI` at runtime; `.env` remains unopened. |
-| 1. Backend foundation | In progress | 2026-10-24 | Building a server package alongside the existing root Vite client. |
+| 1. Backend foundation | Awaiting approval | 2026-10-24 | Server skeleton, zod env validation, Mongoose connection, helmet/cors/rate-limit, error handler, health route, logger, vitest + mongodb-memory-server + supertest tests all passing. |
 | 2. Frontend foundation, design system, and light/dark mode | Not started | — | — |
 | 3. Authentication | Not started | — | — |
 | 4. User profiles | Not started | — | — |
