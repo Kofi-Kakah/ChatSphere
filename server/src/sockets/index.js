@@ -1,6 +1,8 @@
+import mongoose from 'mongoose'
 import { WebSocketServer } from 'ws'
 import jwt from 'jsonwebtoken'
-import { User } from '../models/User.js'
+import { Conversation } from '../models/Conversation.js'
+import * as convService from '../services/conversation.service.js'
 
 const socketsByUser = new Map() // userId -> Set<ws>
 const socketUser = new Map() // ws -> userId
@@ -73,6 +75,28 @@ export function attachWebSocket(server, config) {
         return
       }
       // echo ack for ping
+      // message send
+      if (msg.type === 'message:send') {
+        const { conversationId, clientId, type, text } = msg
+        if (!mongoose.isValidObjectId(conversationId)) { ws.send(JSON.stringify({ type: 'ack', ok: false, error: 'bad id' })); return }
+        const conv = await Conversation.findById(conversationId)
+        if (!conv || !conv.participants.some((p) => String(p.user) === userId)) {
+          ws.send(JSON.stringify({ type: 'ack', ok: false, error: 'forbidden' })); return
+        }
+        // dedupe
+        const existing = await (await import('../models/Message.js')).Message.findOne({ conversation: conversationId, sender: userId, clientId })
+        let message
+        if (existing) message = existing.toObject()
+        else message = await convService.createMessage({ conversationId, sender: userId, type: type || 'text', text: text || '', clientId })
+        ws.send(JSON.stringify({ type: 'ack', ok: true, message }))
+        // broadcast to participants
+        for (const p of conv.participants) {
+          const uid = String(p.user)
+          const set = socketsByUser.get(uid)
+          if (set) for (const s of set) if (s !== ws && s.readyState === 1) s.send(JSON.stringify({ type: 'message:new', message }))
+        }
+        return
+      }
       if (msg.type === 'ping') ws.send(JSON.stringify({ type: 'pong' }))
     })
 

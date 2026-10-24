@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useThemeStore } from './store/theme.js'
 import { useAuthStore } from './store/auth.js'
 import { connectSocket, disconnectSocket } from './lib/socket.js'
-import Shell from './app/Shell.jsx'
+import Chats from './features/chats/Chats.jsx'
 import DesignPreview from './app/DesignPreview.jsx'
 import Login from './features/auth/Login.jsx'
 import Register from './features/auth/Register.jsx'
@@ -30,7 +30,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/design-preview" element={<DesignPreview />} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/" element={<ProtectedRoute><Shell /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><Chats /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

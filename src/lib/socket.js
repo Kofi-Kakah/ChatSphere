@@ -13,6 +13,7 @@ export function connectSocket() {
   if (!token) return
   const url = (import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws')
   ws = new WebSocket(url)
+  window.__ws = ws
   ws.onopen = () => {
     ws.send(JSON.stringify({ type: 'auth', token }))
     reconnectAttempts = 0
@@ -23,6 +24,9 @@ export function connectSocket() {
       const msg = JSON.parse(ev.data)
       if (msg.type === 'presence:snapshot' || msg.type === 'presence:update') {
         window.dispatchEvent(new CustomEvent('presence', { detail: msg }))
+      }
+      if (msg.type === 'message:new' || msg.type === 'ack') {
+        window.dispatchEvent(new CustomEvent('ws-message', { detail: msg }))
       }
     } catch {}
   }
