@@ -77,7 +77,7 @@ export function attachWebSocket(server, config) {
       // echo ack for ping
       // message send
       if (msg.type === 'message:send') {
-        const { conversationId, clientId, type, text } = msg
+        const { conversationId, clientId, type, text, uploadIds } = msg
         if (!mongoose.isValidObjectId(conversationId)) { ws.send(JSON.stringify({ type: 'ack', ok: false, error: 'bad id' })); return }
         const conv = await Conversation.findById(conversationId)
         if (!conv || !conv.participants.some((p) => String(p.user) === userId)) {
@@ -87,7 +87,7 @@ export function attachWebSocket(server, config) {
         const existing = await (await import('../models/Message.js')).Message.findOne({ conversation: conversationId, sender: userId, clientId })
         let message
         if (existing) message = existing.toObject()
-        else message = await convService.createMessage({ conversationId, sender: userId, type: type || 'text', text: text || '', clientId })
+        else message = await convService.createMessage({ conversationId, sender: userId, type: type || 'text', text: text || '', clientId, uploadIds })
         ws.send(JSON.stringify({ type: 'ack', ok: true, message }))
         // broadcast to participants
         for (const p of conv.participants) {

@@ -34,8 +34,15 @@ export async function getMessages(conversationId, before, limit = 30) {
   return msgs.reverse()
 }
 
-export async function createMessage({ conversationId, sender, type, text, clientId }) {
-  const msg = await Message.create({ conversation: conversationId, sender, type: type || 'text', text: text || '', clientId: clientId || null })
+export async function createMessage({ conversationId, sender, type, text, clientId, uploadIds }) {
+  let attachments = []
+  if (uploadIds && uploadIds.length) {
+    const { Upload } = await import('../models/Upload.js')
+    const docs = await Upload.find({ _id: { $in: uploadIds }, owner: sender, attachedTo: null })
+    attachments = docs.map((u) => ({ upload: u._id, mimeType: u.mimeType, size: u.size, originalName: u.originalName, width: u.width, height: u.height, duration: u.duration }))
+    await Upload.updateMany({ _id: { $in: uploadIds } }, { attachedTo: 'pending' })
+  }
+  const msg = await Message.create({ conversation: conversationId, sender, type: type || 'text', text: text || '', clientId: clientId || null, attachments })
   await Conversation.findByIdAndUpdate(conversationId, {
     lastMessage: { id: msg._id, sender, type: msg.type, text: (msg.text || '').slice(0, 100), createdAt: msg.createdAt },
     lastMessageAt: msg.createdAt,

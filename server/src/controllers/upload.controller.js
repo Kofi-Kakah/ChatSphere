@@ -5,10 +5,24 @@ import { Upload } from '../models/Upload.js'
 import { createStorageProvider, newStorageKey } from '../storage/LocalStorageProvider.js'
 import { verifyFileUrl } from '../utils/signedUrl.js'
 
-const storage = createStorageProvider()
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })
-
 const ALLOWED_IMAGES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+const ALLOWED_FILES = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'text/csv',
+  'application/zip',
+])
+const MAX_IMAGE = 10 * 1024 * 1024
+const MAX_FILE = 25 * 1024 * 1024
+
+const storage = createStorageProvider()
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_FILE } })
 
 export const uploadMiddleware = upload.single('file')
 
@@ -19,33 +33,39 @@ export async function handleUpload(req, res, next) {
     }
     const detected = await fileTypeFromBuffer(req.file.buffer)
     const mime = detected?.mime
-    if (!mime || !ALLOWED_IMAGES.has(mime)) {
-      const err = new Error('Unsupported image type'); err.status = 400; err.code = 'BAD_REQUEST'; throw err
+    if (!mime) { const err = new Error('Unknown type'); err.status = 400; err.code = 'BAD_REQUEST'; throw err }
+    const isImage = ALLOWED_IMAGES.has(mime)
+    const isFile = ALLOWED_FILES.has(mime)
+    if (!isImage && !isFile) { const err = new Error('Unsupported type'); err.status = 400; err.code = 'BAD_REQUEST'; throw err }
+    const limit = isImage ? MAX_IMAGE : MAX_FILE
+    if (req.file.size > limit) { const err = new Error('File too large'); err.status = 400; err.code = 'BAD_REQUEST'; throw err }
+
+    const key = newStorageKey(isImage ? 'img' : 'file')
+    let width = null, height = null, thumbKey = null
+    if (isImage) {
+      const meta = await sharp(req.file.buffer).metadata()
+      width = meta.width || null
+      height = meta.height || null
+      const buffer = await sharp(req.file.buffer).rotate().toBuffer()
+      await storage.save(buffer, key)
+      thumbKey = newStorageKey('thumb')
+      const thumb = await sharp(req.file.buffer).resize(200, 200, { fit: 'cover' }).toBuffer()
+      await storage.save(thumb, thumbKey)
+    } else {
+      await storage.save(req.file.buffer, key)
     }
-    if (req.file.size > 10 * 1024 * 1024) {
-      const err = new Error('File too large'); err.status = 400; err.code = 'BAD_REQUEST'; throw err
-    }
-    const key = newStorageKey('img')
-    const image = sharp(req.file.buffer).rotate() // strip EXIF by re-encoding? keep simple
-    const meta = await image.metadata()
-    const buffer = await image.toBuffer()
-    await storage.save(buffer, key)
-    // thumbnail
-    const thumbKey = newStorageKey('thumb')
-    const thumb = await sharp(req.file.buffer).resize(200, 200, { fit: 'cover' }).toBuffer()
-    await storage.save(thumb, thumbKey)
 
     const doc = await Upload.create({
       owner: req.userId,
       storageKey: key,
       mimeType: mime,
-      size: buffer.length,
+      size: req.file.size,
       originalName: req.file.originalname,
-      width: meta.width || null,
-      height: meta.height || null,
+      width,
+      height,
       thumbnailKey: thumbKey,
     })
-    res.status(201).json({ uploadId: doc._id, width: doc.width, height: doc.height })
+    res.status(201).json({ uploadId: doc._id, mimeType: mime, width, height })
   } catch (e) { next(e) }
 }
 
