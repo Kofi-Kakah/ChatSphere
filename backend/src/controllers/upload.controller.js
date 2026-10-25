@@ -98,9 +98,6 @@ export async function serveFile(req, res, next) {
   } catch (e) { next(e) }
 }
 
-import { verifyFileUrl } from '../utils/signedUrl.js'
-
-// ... (top imports already include signFileUrl? add)
 function verifySig(id, exp, sig, secret) {
   return verifyFileUrl(id, exp, sig, secret)
 }

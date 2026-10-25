@@ -10,6 +10,7 @@ import Login from './features/auth/Login.jsx'
 import Register from './features/auth/Register.jsx'
 import Profile from './features/profile/Profile.jsx'
 import ProtectedRoute from './app/ProtectedRoute.jsx'
+import ConnectionBanner from './components/ui/ConnectionBanner.jsx'
 import ToastHost from './components/ui/Toast.jsx'
 
 const queryClient = new QueryClient()

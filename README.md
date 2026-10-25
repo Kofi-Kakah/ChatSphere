@@ -1,16 +1,33 @@
-# React + Vite
+# ChatSphere
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Real-time chat application: React (Vite) frontend + Node/Express backend over WebSockets + MongoDB.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Server
+```
+cd server
+npm install
+cp .env.example .env
+# fill in MONGODB_URI, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET
+npm run dev
+```
+Server runs on `PORT` (default 3001). Health: `GET /api/health`.
 
-## React Compiler
+### Client
+```
+npm install
+cp .env.example .env
+npm run dev
+```
+Client runs on http://localhost:5173.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Environment variables
+See `server/.env.example` and `.env.example`.
 
-## Expanding the ESLint configuration
+## HTTPS / TURN
+`getUserMedia` and `MediaRecorder` require a secure context (localhost exempt). Configure TURN via `TURN_URL`, `TURN_USERNAME`, `TURN_CREDENTIAL` for cross-network calls.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Scripts
+- server: `npm run dev`, `npm start`, `npm test`
+- client: `npm run dev`, `npm run build`, `npm run lint`, `npm run preview`
