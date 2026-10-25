@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
-import Avatar from '../../components/ui/Avatar.jsx'
+import { useNotificationStore } from '../../store/notifications.js'
+import { toast } from '../../components/ui/Toast.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Input from '../../components/ui/Input.jsx'
 
@@ -21,8 +22,16 @@ export default function Chats() {
   useEffect(() => {
     const handler = (e) => {
       const m = e.detail
-      if (m?.type === 'message:new' && m.message?.conversation === active?._id) {
-        setMessages((prev) => [...prev, m.message])
+      if (m?.type === 'message:new') {
+        if (m.message?.conversation === active?._id) {
+          setMessages((prev) => [...prev, m.message])
+        } else {
+          useNotificationStore.getState().incrementUnread(m.message.conversation)
+          toast('New message')
+          if (useNotificationStore.getState().desktopEnabled && document.hidden && 'Notification' in window) {
+            new Notification('New message', { body: m.message.text || 'Attachment' })
+          }
+        }
       }
     }
     window.addEventListener('ws-message', handler)
@@ -41,7 +50,12 @@ export default function Chats() {
     if (active) localStorage.setItem(`draft:${active._id}`, text)
   }, [text, active])
 
-  async function openConv(c) { setActive(c) }
+  async function openConv(c) {
+    setActive(c)
+    useNotificationStore.getState().clearUnread(c._id)
+    const d = await api(`/conversations/${c._id}/messages`)
+    setMessages(d.messages || [])
+  }
 
   async function startChat() {
     const username = prompt('Username to chat with:')
