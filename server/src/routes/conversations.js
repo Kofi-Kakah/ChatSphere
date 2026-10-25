@@ -53,9 +53,27 @@ router.post('/:id/leave', requireAuth, async (req, res, next) => {
   } catch (e) { next(e) }
 })
 
+router.patch('/:id', requireAuth, async (req, res, next) => {
+  try {
+    const conv = await Conversation.findById(req.params.id)
+    if (!conv) { const err = new Error('not found'); err.status = 404; throw err }
+    const isMember = conv.participants.some((p) => String(p.user) === String(req.userId))
+    if (!isMember) { const err = new Error('forbidden'); err.status = 403; throw err }
+    const { name, avatarUrl, theme } = req.body || {}
+    if (name !== undefined) conv.name = name
+    if (avatarUrl !== undefined) conv.avatarUrl = avatarUrl
+    if (theme !== undefined) {
+      conv.theme = theme
+      await conv.save()
+      await convService.createMessage({ conversationId: conv._id, sender: req.userId, type: 'system', text: `Theme changed to ${theme}` })
+    } else {
+      await conv.save()
+    }
+    res.json({ conversation: conv })
+  } catch (e) { next(e) }
+})
 router.get('/:id/messages', requireAuth, async (req, res, next) => {
   try {
-    const { before, limit } = req.query
     const msgs = await conv.getMessages(req.params.id, before, Number(limit) || 30)
     res.json({ messages: msgs })
   } catch (e) { next(e) }

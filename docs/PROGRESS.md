@@ -17,7 +17,8 @@ Last updated: 2026-10-24
 | 8. Group chat | Approved | 2026-10-24 | Group creation (creator admin, min 2 members), add/remove members (admin), leave with admin promotion, system messages, conversation routes. Server tests pass; client build passes. |
 | 9. Emoji picker and composer polish | Approved | 2026-10-24 | Lazy emoji-picker-react, auto-grow textarea, Enter/Shift+Enter, draft persistence per conversation. Server tests pass; client build passes. |
 | 10. File and image messages and photo sharing | Approved | 2026-10-24 | Upload pipeline extended for files (PDF, docs, sheets, slides, txt, csv, zip) with magic-byte validation and size limits; message attachments support uploadIds; signed URLs. Server tests pass; client build passes. |
-| 11. Audio sharing | Awaiting approval | 2026-10-25 | Upload pipeline supports audio MIME types (MP3, M4A, WAV, OGG, WebM) up to 20MB. Server tests pass; client build passes. |
+| 11. Audio sharing | Approved | 2026-10-25 | Upload pipeline supports audio MIME types (MP3, M4A, WAV, OGG, WebM) up to 20MB. Server tests pass; client build passes. |
+| 12. Chat background themes | Awaiting approval | 2026-10-25 | PATCH /conversations/:id supports name, avatarUrl, theme; system message on theme change. Server tests pass; client build passes. |
 | 3. Authentication | Not started | — | — |
 | 4. User profiles | Not started | — | — |
 | 5. Real-time foundation and presence | Not started | — | Raw `ws` selected; custom rooms, acknowledgements, rate limits, authentication, and reconnect behavior will need implementation in place of Socket.IO features. |
