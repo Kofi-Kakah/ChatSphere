@@ -5,7 +5,7 @@ import { rateLimit } from 'express-rate-limit'
 import helmet from 'helmet'
 import healthRouter from './routes/health.js'
 import uploadRouter from './routes/upload.js'
-import conversationsRouter from './routes/conversations.js'
+import callsRouter from './routes/calls.js'
 import authRouter from './routes/auth.js'
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js'
 import { requireAuth } from './middleware/auth.js'
@@ -37,7 +37,7 @@ export function createApp(config) {
   }))
   app.use('/api', healthRouter)
   app.use('/api/uploads', uploadRouter)
-  app.use('/api/conversations', conversationsRouter)
+  app.use('/api/calls', callsRouter)
   const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false })
   app.use('/api/auth/login', authLimiter)
   app.use('/api/auth/register', authLimiter)

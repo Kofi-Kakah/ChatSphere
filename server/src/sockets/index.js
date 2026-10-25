@@ -6,7 +6,7 @@ import * as convService from '../services/conversation.service.js'
 
 const socketsByUser = new Map() // userId -> Set<ws>
 const socketUser = new Map() // ws -> userId
-const graceTimers = new Map() // userId -> timer
+const activeCalls = new Map() // callId -> { conversationId, callerId, calleeId }
 
 function broadcastPresence(userId, online, lastSeenAt) {
   // broadcast to all connected users for simplicity
@@ -136,6 +136,52 @@ export function attachWebSocket(server, config) {
           const set = socketsByUser.get(uid)
           if (set) for (const s of set) if (s.readyState === 1) s.send(JSON.stringify({ type: 'message:status', conversationId, userId, lastReadMessage: messageId }))
         }
+        return
+      }
+
+      if (msg.type === 'call:invite') {
+        const { callId, conversationId } = msg
+        const conv = await Conversation.findById(conversationId)
+        if (!conv) return
+        const callee = conv.participants.find((p) => String(p.user) !== userId)
+        const calleeId = callee ? String(callee.user) : null
+        if (!calleeId) return
+        // busy check
+        for (const [_, c] of activeCalls) {
+          if (c.callerId === calleeId || c.calleeId === calleeId) {
+            ws.send(JSON.stringify({ type: 'call:busy', callId })); return
+          }
+        }
+        activeCalls.set(callId, { conversationId, callerId: userId, calleeId })
+        const set = socketsByUser.get(calleeId)
+        if (set) for (const s of set) if (s.readyState === 1) s.send(JSON.stringify({ type: 'call:incoming', callId, conversationId, callerId: userId }))
+        else {
+          // offline -> missed call
+          activeCalls.delete(callId)
+          ws.send(JSON.stringify({ type: 'call:ended', callId, reason: 'missed' }))
+        }
+        return
+      }
+
+      if (msg.type === 'call:accept' || msg.type === 'call:decline' || msg.type === 'call:cancel' || msg.type === 'call:end') {
+        const { callId } = msg
+        const c = activeCalls.get(callId)
+        if (!c) return
+        const otherId = c.callerId === userId ? c.calleeId : c.callerId
+        const set = socketsByUser.get(otherId)
+        const evt = msg.type === 'call:accept' ? 'call:accepted' : msg.type === 'call:decline' ? 'call:declined' : msg.type === 'call:cancel' ? 'call:cancelled' : 'call:ended'
+        if (set) for (const s of set) if (s.readyState === 1) s.send(JSON.stringify({ type: evt, callId }))
+        if (msg.type === 'call:decline' || msg.type === 'call:cancel' || msg.type === 'call:end') activeCalls.delete(callId)
+        return
+      }
+
+      if (msg.type === 'call:signal') {
+        const { callId, kind, data } = msg
+        const c = activeCalls.get(callId)
+        if (!c) return
+        const otherId = c.callerId === userId ? c.calleeId : c.callerId
+        const set = socketsByUser.get(otherId)
+        if (set) for (const s of set) if (s.readyState === 1) s.send(JSON.stringify({ type: 'call:signal', callId, kind, data }))
         return
       }
 
