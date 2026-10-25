@@ -20,6 +20,15 @@ const ALLOWED_FILES = new Set([
 ])
 const MAX_IMAGE = 10 * 1024 * 1024
 const MAX_FILE = 25 * 1024 * 1024
+const ALLOWED_AUDIO = new Set([
+  'audio/mpeg',
+  'audio/mp4',
+  'audio/wav',
+  'audio/ogg',
+  'audio/webm',
+  'audio/x-m4a',
+])
+const MAX_AUDIO = 20 * 1024 * 1024
 
 const storage = createStorageProvider()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_FILE } })
@@ -35,12 +44,13 @@ export async function handleUpload(req, res, next) {
     const mime = detected?.mime
     if (!mime) { const err = new Error('Unknown type'); err.status = 400; err.code = 'BAD_REQUEST'; throw err }
     const isImage = ALLOWED_IMAGES.has(mime)
+    const isAudio = ALLOWED_AUDIO.has(mime)
     const isFile = ALLOWED_FILES.has(mime)
-    if (!isImage && !isFile) { const err = new Error('Unsupported type'); err.status = 400; err.code = 'BAD_REQUEST'; throw err }
-    const limit = isImage ? MAX_IMAGE : MAX_FILE
+    if (!isImage && !isAudio && !isFile) { const err = new Error('Unsupported type'); err.status = 400; err.code = 'BAD_REQUEST'; throw err }
+    const limit = isImage ? MAX_IMAGE : isAudio ? MAX_AUDIO : MAX_FILE
     if (req.file.size > limit) { const err = new Error('File too large'); err.status = 400; err.code = 'BAD_REQUEST'; throw err }
 
-    const key = newStorageKey(isImage ? 'img' : 'file')
+    const key = newStorageKey(isImage ? 'img' : isAudio ? 'audio' : 'file')
     let width = null, height = null, thumbKey = null
     if (isImage) {
       const meta = await sharp(req.file.buffer).metadata()
