@@ -7,6 +7,8 @@ import healthRouter from './routes/health.js'
 import uploadRouter from './routes/upload.js'
 import callsRouter from './routes/calls.js'
 import authRouter from './routes/auth.js'
+import conversationsRouter from './routes/conversations.js'
+import usersRouter from './routes/users.js'
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js'
 import { requireAuth } from './middleware/auth.js'
 
@@ -42,6 +44,8 @@ export function createApp(config) {
   app.use('/api/auth/login', authLimiter)
   app.use('/api/auth/register', authLimiter)
   app.use('/api/auth', authRouter)
+  app.use('/api/conversations', conversationsRouter)
+  app.use('/api/users', usersRouter)
   app.use(notFoundHandler)
   app.use(errorHandler)
 

@@ -74,9 +74,9 @@ export default function Chats() {
     const clientId = crypto.randomUUID()
     const optimistic = { _id: clientId, conversation: active._id, sender: 'me', type: 'text', text, createdAt: new Date().toISOString(), pending: true }
     setMessages((prev) => [...prev, optimistic])
-    const ws = window.__ws
-    if (ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ type: 'message:send', conversationId: active._id, clientId, type: 'text', text }))
+    const ws = window.__socket
+    if (ws && ws.connected) {
+      ws.emit('message:send', { conversationId: active._id, clientId, type: 'text', text }, (ack) => {})
     }
     setText('')
     localStorage.removeItem(`draft:${active._id}`)
