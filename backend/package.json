@@ -9,7 +9,13 @@
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../.env src/index.js",
     "start": "node --env-file-if-exists=../.env src/index.js",
-    "test": "vitest run --config ./vitest.config.js --configLoader runner"
+    "test": "vitest run --config ./vitest.config.js --configLoader runner",
+    "test:api": "vitest run --config ./vitest.config.js --configLoader runner tests/api tests/health.test.js",
+    "test:socket": "vitest run --config ./vitest.config.js --configLoader runner tests/socket",
+    "test:db": "vitest run --config ./vitest.config.js --configLoader runner tests/db",
+    "test:security": "vitest run --config ./vitest.config.js --configLoader runner tests/security",
+    "test:load": "vitest run --config ./vitest.config.js --configLoader runner tests/load",
+    "test:soak": "vitest run --config ./vitest.config.js --configLoader runner tests/soak"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -28,7 +34,9 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.5",
     "mongodb-memory-server": "^10.2.3",
+    "socket.io-client": "^4.8.4",
     "supertest": "^7.1.4",
     "vitest": "^5.0.5"
   }

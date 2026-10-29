@@ -34,4 +34,3 @@ export function disconnectSocket() {
 export function isSocketOpen() {
   return !!socket && socket.connected
 }
-PY

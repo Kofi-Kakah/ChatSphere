@@ -8,8 +8,17 @@
     <script>
       (function () {
         try {
+          var pref = 'system';
           var stored = localStorage.getItem('chatsphere-theme');
-          var pref = stored || 'system';
+          if (stored) {
+            try {
+              var parsed = JSON.parse(stored);
+              pref = (parsed && parsed.state && parsed.state.preference) || 'system';
+            } catch (e) {
+              pref = stored;
+            }
+          }
+          if (pref !== 'light' && pref !== 'dark' && pref !== 'system') pref = 'system';
           var resolved = pref;
           if (pref === 'system') {
             resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

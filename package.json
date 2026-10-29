@@ -1,0 +1,27 @@
+{
+  "name": "chatsphere-qa",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Test-only harness for ChatSphere QA. Adds no production dependencies.",
+  "scripts": {
+    "test:api": "npm --prefix backend run test:api",
+    "test:socket": "npm --prefix backend run test:socket",
+    "test:db": "npm --prefix backend run test:db",
+    "test:web": "npm --prefix frontend run test:web",
+    "test:security": "npm --prefix backend run test:security",
+    "test:load": "npm --prefix backend run test:load",
+    "test:soak": "npm --prefix backend run test:soak",
+    "test:perf": "playwright test --config tests/playwright.config.js --project=chromium tests/e2e/performance.spec.js tests/e2e/performance-virtualization.spec.js",
+    "test:e2e": "playwright test --config tests/playwright.config.js --project=chromium tests/e2e",
+    "test:e2e:cross": "playwright test --config tests/playwright.config.js --project=firefox --project=webkit tests/e2e",
+    "test:a11y": "playwright test --config tests/playwright.config.js --project=chromium tests/a11y",
+    "test:visual": "playwright test --config tests/playwright.config.js --project=chromium tests/visual",
+    "test:exploratory": "playwright test --config tests/playwright.config.js --project=chromium tests/exploratory",
+    "test:all": "npm run test:api && npm run test:socket && npm run test:db && npm run test:web && npm run test:security && npm run test:load && npm run test:e2e && npm run test:a11y && npm run test:visual"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.1"
+  }
+}

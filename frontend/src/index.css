@@ -24,6 +24,10 @@
   --danger: #EF4444;
   --warning: #F59E0B;
   --success: #16A34A;
+  --sender-1: #4338CA;
+  --sender-2: #BE185D;
+  --sender-3: #0F766E;
+  --sender-4: #B45309;
   color-scheme: light;
 }
 
@@ -48,6 +52,10 @@
   --danger: #F87171;
   --warning: #FBBF24;
   --success: #4ADE80;
+  --sender-1: #A5B4FC;
+  --sender-2: #F9A8D4;
+  --sender-3: #5EEAD4;
+  --sender-4: #FCD34D;
   color-scheme: dark;
 }
 

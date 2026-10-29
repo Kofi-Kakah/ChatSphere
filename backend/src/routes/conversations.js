@@ -72,9 +72,23 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
     res.json({ conversation: conv })
   } catch (e) { next(e) }
 })
+router.get('/:id/media', requireAuth, async (req, res, next) => {
+  try {
+    const media = await conv.listMedia(req.params.id, req.userId, {
+      type: req.query.type,
+      before: req.query.before,
+      limit: req.query.limit,
+    })
+    res.json({ media })
+  } catch (e) { next(e) }
+})
+
 router.get('/:id/messages', requireAuth, async (req, res, next) => {
   try {
-    const msgs = await conv.getMessages(req.params.id, before, Number(limit) || 30)
+    const msgs = await conv.getMessages(req.params.id, req.userId, {
+      before: req.query.before,
+      limit: req.query.limit,
+    })
     res.json({ messages: msgs })
   } catch (e) { next(e) }
 })

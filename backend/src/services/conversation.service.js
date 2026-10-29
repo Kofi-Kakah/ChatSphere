@@ -2,6 +2,13 @@ import mongoose from 'mongoose'
 import { Conversation } from '../models/Conversation.js'
 import { Message } from '../models/Message.js'
 
+function invalidAttachment() {
+  const e = new Error('Invalid attachment')
+  e.status = 400
+  e.code = 'INVALID_ATTACHMENT'
+  return e
+}
+
 export async function findOrCreateDirect(a, b) {
   const [x, y] = [String(a), String(b)].sort()
   const directKey = `${x}_${y}`
@@ -27,22 +34,102 @@ export async function listConversations(userId) {
   return Conversation.find({ 'participants.user': userId }).sort({ lastMessageAt: -1, updatedAt: -1 }).lean()
 }
 
-export async function getMessages(conversationId, before, limit = 30) {
+export async function getMessages(conversationId, userId, { before, limit } = {}) {
+  if (!mongoose.isValidObjectId(conversationId)) {
+    const e = new Error('Invalid conversation id'); e.status = 400; e.code = 'BAD_REQUEST'; throw e
+  }
+  const conversation = await Conversation.findById(conversationId).select('participants.user').lean()
+  if (!conversation) {
+    const e = new Error('Conversation not found'); e.status = 404; e.code = 'NOT_FOUND'; throw e
+  }
+  if (!conversation.participants.some((p) => String(p.user) === String(userId))) {
+    const e = new Error('Forbidden'); e.status = 403; e.code = 'FORBIDDEN'; throw e
+  }
+  if (before && !mongoose.isValidObjectId(before)) {
+    const e = new Error('Invalid cursor'); e.status = 400; e.code = 'BAD_REQUEST'; throw e
+  }
+  const pageSize = Math.min(Math.max(Number.parseInt(limit, 10) || 30, 1), 100)
   const filter = { conversation: conversationId }
   if (before) filter._id = { $lt: new mongoose.Types.ObjectId(before) }
-  const msgs = await Message.find(filter).sort({ _id: -1 }).limit(limit).lean()
+  const msgs = await Message.find(filter).sort({ _id: -1 }).limit(pageSize).lean()
   return msgs.reverse()
+}
+
+export async function listMedia(conversationId, userId, { type, before, limit } = {}) {
+  if (!mongoose.isValidObjectId(conversationId)) {
+    const e = new Error('Invalid conversation id'); e.status = 400; e.code = 'BAD_REQUEST'; throw e
+  }
+  const conversation = await Conversation.findById(conversationId).select('participants.user').lean()
+  if (!conversation) {
+    const e = new Error('Conversation not found'); e.status = 404; e.code = 'NOT_FOUND'; throw e
+  }
+  if (!conversation.participants.some((p) => String(p.user) === String(userId))) {
+    const e = new Error('Forbidden'); e.status = 403; e.code = 'FORBIDDEN'; throw e
+  }
+  if (before && !mongoose.isValidObjectId(before)) {
+    const e = new Error('Invalid cursor'); e.status = 400; e.code = 'BAD_REQUEST'; throw e
+  }
+  const category = ['image', 'audio', 'file'].includes(type) ? type : 'image'
+  const pageSize = Math.min(Math.max(Number.parseInt(limit, 10) || 30, 1), 100)
+  const mimeMatch = category === 'file' ? { $not: /^(image|audio)\// } : new RegExp(`^${category}/`)
+  const match = {
+    conversation: new mongoose.Types.ObjectId(conversationId),
+    'attachments.0': { $exists: true },
+  }
+  if (before) match._id = { $lt: new mongoose.Types.ObjectId(before) }
+  return Message.aggregate([
+    { $match: match },
+    { $unwind: '$attachments' },
+    { $match: { 'attachments.mimeType': mimeMatch } },
+    { $sort: { _id: -1 } },
+    { $limit: pageSize },
+    {
+      $project: {
+        _id: 0,
+        messageId: '$_id',
+        createdAt: 1,
+        uploadId: '$attachments.upload',
+        mimeType: '$attachments.mimeType',
+        originalName: '$attachments.originalName',
+        size: '$attachments.size',
+        width: '$attachments.width',
+        height: '$attachments.height',
+        duration: '$attachments.duration',
+      },
+    },
+  ])
 }
 
 export async function createMessage({ conversationId, sender, type, text, clientId, uploadIds }) {
   let attachments = []
+  const messageId = new mongoose.Types.ObjectId()
+  let claimed = []
   if (uploadIds && uploadIds.length) {
+    if (uploadIds.some((id) => !mongoose.isValidObjectId(id))) throw invalidAttachment()
     const { Upload } = await import('../models/Upload.js')
     const docs = await Upload.find({ _id: { $in: uploadIds }, owner: sender, attachedTo: null })
+    if (docs.length !== uploadIds.length) throw invalidAttachment()
+    const result = await Upload.updateMany(
+      { _id: { $in: uploadIds }, owner: sender, attachedTo: null },
+      { attachedTo: messageId },
+    )
+    if (result.modifiedCount !== uploadIds.length) {
+      await Upload.updateMany({ _id: { $in: uploadIds }, attachedTo: messageId }, { attachedTo: null })
+      throw invalidAttachment()
+    }
+    claimed = uploadIds
     attachments = docs.map((u) => ({ upload: u._id, mimeType: u.mimeType, size: u.size, originalName: u.originalName, width: u.width, height: u.height, duration: u.duration }))
-    await Upload.updateMany({ _id: { $in: uploadIds } }, { attachedTo: 'pending' })
   }
-  const msg = await Message.create({ conversation: conversationId, sender, type: type || 'text', text: text || '', clientId: clientId || null, attachments })
+  let msg
+  try {
+    msg = await Message.create({ _id: messageId, conversation: conversationId, sender, type: type || 'text', text: text || '', clientId: clientId || null, attachments })
+  } catch (error) {
+    if (claimed.length) {
+      const { Upload } = await import('../models/Upload.js')
+      await Upload.updateMany({ _id: { $in: claimed }, attachedTo: messageId }, { attachedTo: null })
+    }
+    throw error
+  }
   await Conversation.findByIdAndUpdate(conversationId, {
     lastMessage: { id: msg._id, sender, type: msg.type, text: (msg.text || '').slice(0, 100), createdAt: msg.createdAt },
     lastMessageAt: msg.createdAt,

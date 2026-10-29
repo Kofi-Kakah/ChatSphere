@@ -1,0 +1,54 @@
+{
+  "generatedBy": "tests/assets/generate.mjs",
+  "files": [
+    {
+      "name": "valid.png",
+      "expectedMime": "image/png",
+      "purpose": "valid image upload"
+    },
+    {
+      "name": "valid.gif",
+      "expectedMime": "image/gif",
+      "purpose": "valid GIF upload"
+    },
+    {
+      "name": "valid.pdf",
+      "expectedMime": "application/pdf",
+      "purpose": "valid document upload"
+    },
+    {
+      "name": "valid.txt",
+      "expectedMime": "text/plain",
+      "purpose": "valid text upload"
+    },
+    {
+      "name": "valid.zip",
+      "expectedMime": "application/zip",
+      "purpose": "valid archive upload"
+    },
+    {
+      "name": "malicious.svg",
+      "expectedMime": "image/svg+xml",
+      "purpose": "SVG with script must be rejected"
+    },
+    {
+      "name": "spoofed-image.png",
+      "expectedMime": "text/html",
+      "purpose": "extension says PNG but content is HTML; magic-byte check must reject"
+    },
+    {
+      "name": "corrupt-image.jpg",
+      "expectedMime": "application/octet-stream",
+      "purpose": "truncated/invalid JPEG must be rejected"
+    },
+    {
+      "name": "executable.exe",
+      "expectedMime": "application/octet-stream",
+      "purpose": "executable stub must be rejected"
+    }
+  ],
+  "onDemand": [
+    "oversized.png (>10 MB) — generate at test time to avoid committing large binaries",
+    "oversized.pdf (>25 MB) — generate at test time"
+  ]
+}

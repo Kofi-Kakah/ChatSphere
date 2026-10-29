@@ -30,7 +30,14 @@ export const useThemeStore = create(
         set({ resolved })
       },
     }),
-    { name: STORAGE_KEY, partialize: (s) => ({ preference: s.preference }) },
+    {
+      name: STORAGE_KEY,
+      partialize: (s) => ({ preference: s.preference }),
+      merge: (persisted, current) => {
+        const preference = persisted?.preference ?? current.preference
+        return { ...current, preference, resolved: resolveTheme(preference) }
+      },
+    },
   ),
 )
 

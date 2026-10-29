@@ -1,0 +1,469 @@
+{
+  "startedAt": "2026-10-28T17:11:25.630Z",
+  "run": "bug095-fix",
+  "steps": [
+    {
+      "id": 1,
+      "name": "three clients connect and list their conversations",
+      "status": "ok",
+      "note": "3/2/2 rows",
+      "ms": 47
+    },
+    {
+      "id": 2,
+      "name": "open Chaos AB on alice and bob",
+      "status": "ok",
+      "note": "both headers show Chaos AB",
+      "ms": 249
+    },
+    {
+      "id": 3,
+      "name": "baseline message is delivered to the other user",
+      "status": "ok",
+      "note": "delivered exactly once to bob",
+      "ms": 135
+    },
+    {
+      "id": 4,
+      "name": "double Enter on one draft",
+      "status": "ok",
+      "note": "stored 1 copy",
+      "ms": 1394
+    },
+    {
+      "id": 5,
+      "name": "double-click the Send button",
+      "status": "ok",
+      "note": "stored 1 copy",
+      "ms": 1354
+    },
+    {
+      "id": 6,
+      "name": "ten Enter presses on one draft",
+      "status": "ok",
+      "note": "stored 1 copy",
+      "ms": 1840
+    },
+    {
+      "id": 7,
+      "name": "whitespace-only message is blocked by the client",
+      "status": "ok",
+      "note": "no bubble added",
+      "ms": 588
+    },
+    {
+      "id": 8,
+      "name": "newline-only message is blocked by the client",
+      "status": "ok",
+      "note": "no bubble added",
+      "ms": 605
+    },
+    {
+      "id": 9,
+      "name": "4001-character message has no client limit",
+      "status": "ok",
+      "note": "accepted (BUG-019: server accepts over-4000 text)",
+      "ms": 1632
+    },
+    {
+      "id": 10,
+      "name": "100,000-character paste",
+      "status": "ok",
+      "note": "2844 ms, socket={\"connected\":true,\"id\":\"3COnrv97U8OjsDYdAAAA\"}, stored=1",
+      "ms": 2844
+    },
+    {
+      "id": 11,
+      "name": "HTML and script payload renders as text",
+      "status": "ok",
+      "note": "inert in bob DOM",
+      "ms": 109
+    },
+    {
+      "id": 12,
+      "name": "three-emoji and four-emoji sizing",
+      "status": "anomaly",
+      "note": "jumbo sizing {\"three\":15,\"four\":15}",
+      "ms": 1496
+    },
+    {
+      "id": 13,
+      "name": "emoji picker inserts at the caret",
+      "status": "ok",
+      "note": "inserted at caret",
+      "ms": 1498
+    },
+    {
+      "id": 14,
+      "name": "emoji picker after send",
+      "status": "ok",
+      "note": "picker stays open after send",
+      "ms": 1320
+    },
+    {
+      "id": 15,
+      "name": "conversation search filters the list",
+      "status": "anomaly",
+      "note": "typing a non-matching query left all 3 rows visible",
+      "ms": 680
+    },
+    {
+      "id": 16,
+      "name": "New chat with an existing contact does not duplicate the row",
+      "status": "anomaly",
+      "note": "rows 3 -> 4 in the UI, while the API still returns 3 conversations",
+      "ms": 1335
+    },
+    {
+      "id": 17,
+      "name": "New chat with an unknown username",
+      "status": "ok",
+      "note": "dialogs: [{\"type\":\"prompt\",\"message\":\"Username to chat with:\"},{\"type\":\"alert\",\"message\":\"not found\"}]",
+      "ms": 1553
+    },
+    {
+      "id": 18,
+      "name": "New chat cancelled with an empty prompt",
+      "status": "ok",
+      "note": "no change",
+      "ms": 676
+    },
+    {
+      "id": 19,
+      "name": "New chat with your own username",
+      "status": "anomaly",
+      "note": "dialogs=[\"Username to chat with:\"] header=\"Chat\" rows=6 ([\"Chaos AB [picker-open-17932075]\",\"Direct chat []\",\"Chaos AB [picker-open-17932075]\",\"Chaos Group [Group created]\",\"Chaos AC []\",\"Chaos AB []\"]), api conversations=4, self chats=1",
+      "ms": 1594
+    },
+    {
+      "id": 20,
+      "name": "profile: 161-character bio",
+      "status": "anomaly",
+      "note": "PATCH /users/me -> 500 with raw validation text: User validation failed: bio: Path `bio` (`zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz...`, length 161) is longer than the maximum all",
+      "ms": 573
+    },
+    {
+      "id": 21,
+      "name": "profile: one-character username",
+      "status": "anomaly",
+      "note": "one-character username accepted (200); message \"Saved\"",
+      "ms": 689
+    },
+    {
+      "id": 22,
+      "name": "group: three users send at the same time",
+      "status": "ok",
+      "note": "all three messages visible to all three users",
+      "ms": 2742
+    },
+    {
+      "id": 23,
+      "name": "three-user interleave does not cross conversations",
+      "status": "ok",
+      "note": "direct and group messages stayed in their own chats",
+      "ms": 2791
+    },
+    {
+      "id": 24,
+      "name": "stale history after a slow conversation switch",
+      "status": "ok",
+      "note": "header=Chaos AB, bubbles 11 -> 11, no AC content",
+      "ms": 3002
+    },
+    {
+      "id": 25,
+      "name": "rapid conversation switching (30 clicks)",
+      "status": "ok",
+      "note": "30 clicks in 5219 ms, header Chaos Group",
+      "ms": 5229
+    },
+    {
+      "id": 26,
+      "name": "draft survives switching away and back",
+      "status": "ok",
+      "note": "draft restored",
+      "ms": 638
+    },
+    {
+      "id": 27,
+      "name": "info panel toggles 20 times quickly",
+      "status": "ok",
+      "note": "aria-pressed=true",
+      "ms": 1864
+    },
+    {
+      "id": 28,
+      "name": "media tabs switch 12 times",
+      "status": "ok",
+      "note": "selected tab Audio",
+      "ms": 927
+    },
+    {
+      "id": 29,
+      "name": "send 30 messages quickly and check order",
+      "status": "ok",
+      "note": "bob got all 30 in order; alice ws events {\"ids\":30,\"duplicated\":0,\"max\":1}, dom {\"bubbles\":71,\"unique\":71,\"duplicated\":0}",
+      "ms": 8881
+    },
+    {
+      "id": 30,
+      "name": "zero-width and control-looking characters",
+      "status": "ok",
+      "note": "rendered",
+      "ms": 1276
+    },
+    {
+      "id": 31,
+      "name": "paste an image, send it, and confirm delivery",
+      "status": "ok",
+      "note": "delivered=true, media API 200 items=1",
+      "ms": 812
+    },
+    {
+      "id": 32,
+      "name": "drop a file on the composer",
+      "status": "ok",
+      "note": "drop created a chip",
+      "ms": 365
+    },
+    {
+      "id": 33,
+      "name": "send while an upload is still in progress",
+      "status": "ok",
+      "note": "blocked with a toast, nothing sent",
+      "ms": 3034
+    },
+    {
+      "id": 34,
+      "name": "cancel an in-flight upload",
+      "status": "ok",
+      "note": "chip removed",
+      "ms": 886
+    },
+    {
+      "id": 35,
+      "name": "upload a rejected executable",
+      "status": "ok",
+      "note": "chip text: \"executable.exe\"",
+      "ms": 2734
+    },
+    {
+      "id": 36,
+      "name": "upload an oversized file",
+      "status": "ok",
+      "note": "rejected client-side, toast=true",
+      "ms": 8714
+    },
+    {
+      "id": 37,
+      "name": "voice recording start, stop, and send",
+      "status": "ok",
+      "note": "voice message delivered to bob",
+      "ms": 2487
+    },
+    {
+      "id": 38,
+      "name": "voice recording cancelled",
+      "status": "ok",
+      "note": "recording bar closed, nothing sent",
+      "ms": 2847
+    },
+    {
+      "id": 39,
+      "name": "lightbox opens and navigates from the Photos tab",
+      "status": "ok",
+      "note": "opened, arrow navigated, Esc closed",
+      "ms": 303
+    },
+    {
+      "id": 40,
+      "name": "close a tab in the middle of an upload",
+      "status": "ok",
+      "note": "server healthy (200) after the tab closed",
+      "ms": 3838
+    },
+    {
+      "id": 41,
+      "name": "switch account in one browser",
+      "status": "ok",
+      "note": "bob sees 2 rows after login on the same tab",
+      "ms": 3694
+    },
+    {
+      "id": 42,
+      "name": "offline send leaves a pending bubble and shows the banner",
+      "status": "ok",
+      "note": "banner shown/cleared; offline bubble count 1, server copies after reconnect 0 (BUG-034/BUG-091 tracking)",
+      "ms": 1640
+    },
+    {
+      "id": 43,
+      "name": "3 offline flaps while typing preserve the draft",
+      "status": "ok",
+      "note": "draft intact",
+      "ms": 2004
+    },
+    {
+      "id": 44,
+      "name": "viewport rotation mid-conversation",
+      "status": "ok",
+      "note": "horizontal overflow: [{\"width\":390,\"overflow\":307},{\"width\":360,\"overflow\":337}] (BUG-067)",
+      "ms": 1541
+    },
+    {
+      "id": 45,
+      "name": "200% zoom",
+      "status": "ok",
+      "note": "composer 201px wide, overflow 0px",
+      "ms": 540
+    },
+    {
+      "id": 46,
+      "name": "long unbroken word does not overflow the page",
+      "status": "anomaly",
+      "note": "document overflows by 59688px",
+      "ms": 1653
+    },
+    {
+      "id": 47,
+      "name": "scroll up while messages arrive",
+      "status": "ok",
+      "note": "scrollTop=0px, new-message pill count=0 (BUG-076 if absent)",
+      "ms": 2980
+    },
+    {
+      "id": 48,
+      "name": "browser back and forward",
+      "status": "ok",
+      "note": "back/forward stayed inside http://127.0.0.1:5175",
+      "ms": 1076
+    },
+    {
+      "id": 49,
+      "name": "reload keeps the session",
+      "status": "ok",
+      "note": "reload logged the user out (BUG-039), session ends keyboard check",
+      "ms": 763
+    },
+    {
+      "id": 50,
+      "name": "console, page errors, and failed requests",
+      "status": "ok",
+      "note": "{\"console\":8,\"requestfailed\":1}",
+      "ms": 1
+    }
+  ],
+  "anomalies": [
+    {
+      "id": 12,
+      "name": "three-emoji and four-emoji sizing",
+      "status": "anomaly",
+      "note": "jumbo sizing {\"three\":15,\"four\":15}",
+      "ms": 1496
+    },
+    {
+      "id": 15,
+      "name": "conversation search filters the list",
+      "status": "anomaly",
+      "note": "typing a non-matching query left all 3 rows visible",
+      "ms": 680
+    },
+    {
+      "id": 16,
+      "name": "New chat with an existing contact does not duplicate the row",
+      "status": "anomaly",
+      "note": "rows 3 -> 4 in the UI, while the API still returns 3 conversations",
+      "ms": 1335
+    },
+    {
+      "id": 19,
+      "name": "New chat with your own username",
+      "status": "anomaly",
+      "note": "dialogs=[\"Username to chat with:\"] header=\"Chat\" rows=6 ([\"Chaos AB [picker-open-17932075]\",\"Direct chat []\",\"Chaos AB [picker-open-17932075]\",\"Chaos Group [Group created]\",\"Chaos AC []\",\"Chaos AB []\"]), api conversations=4, self chats=1",
+      "ms": 1594
+    },
+    {
+      "id": 20,
+      "name": "profile: 161-character bio",
+      "status": "anomaly",
+      "note": "PATCH /users/me -> 500 with raw validation text: User validation failed: bio: Path `bio` (`zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz...`, length 161) is longer than the maximum all",
+      "ms": 573
+    },
+    {
+      "id": 21,
+      "name": "profile: one-character username",
+      "status": "anomaly",
+      "note": "one-character username accepted (200); message \"Saved\"",
+      "ms": 689
+    },
+    {
+      "id": 46,
+      "name": "long unbroken word does not overflow the page",
+      "status": "anomaly",
+      "note": "document overflows by 59688px",
+      "ms": 1653
+    }
+  ],
+  "errors": [],
+  "events": [
+    {
+      "t": 24.2,
+      "label": "a",
+      "kind": "console",
+      "text": "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 6ae22cbf0e8c5f9ad23f7fa6"
+    },
+    {
+      "t": 24.2,
+      "label": "a",
+      "kind": "console",
+      "text": "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 6ae22cbf0e8c5f9ad23f7fa6"
+    },
+    {
+      "t": 24.3,
+      "label": "a",
+      "kind": "console",
+      "text": "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 6ae22cbf0e8c5f9ad23f7fa6"
+    },
+    {
+      "t": 27.7,
+      "label": "a",
+      "kind": "console",
+      "text": "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 6ae22cbf0e8c5f9ad23f7fa6"
+    },
+    {
+      "t": 27.7,
+      "label": "a",
+      "kind": "console",
+      "text": "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 6ae22cbf0e8c5f9ad23f7fa6"
+    },
+    {
+      "t": 27.8,
+      "label": "a",
+      "kind": "console",
+      "text": "Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. 6ae22cbf0e8c5f9ad23f7fa6"
+    },
+    {
+      "t": 29.4,
+      "label": "a",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "t": 62.4,
+      "label": "a",
+      "kind": "requestfailed",
+      "text": "POST http://127.0.0.1:3101/api/uploads net::ERR_ABORTED"
+    },
+    {
+      "t": 63,
+      "label": "a",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    }
+  ],
+  "counts": {
+    "steps": 50,
+    "anomaly": 7,
+    "error": 0
+  }
+}

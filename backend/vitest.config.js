@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 import { fileURLToPath } from 'node:url'
 
 process.env.MONGOMS_DOWNLOAD_DIR = fileURLToPath(new URL('./.cache/mongodb-binaries/', import.meta.url))
+process.env.UPLOAD_DIR = fileURLToPath(new URL('./.cache/test-uploads/', import.meta.url))
 
 export default defineConfig({
   root: fileURLToPath(new URL('.', import.meta.url)),
